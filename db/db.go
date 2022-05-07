@@ -43,11 +43,14 @@ func gormDb() *gorm.DB {
 func New(data []byte, timestamp int64) {
 	sdb := sqlDb()
 	order := mod.Order{}
-	log.Println(json.Unmarshal(data, &order))
+	if err := json.Unmarshal(data, &order); err != nil {
+		return
+	}
 	_, err := sdb.Query("insert into orders(id, orderjson, pubdate) values($1, $2, $3)", order.Order_id, string(data), timestamp)
 	if err != nil {
-		_, err = sdb.Query("update orders set orderjson=$1 and pubdate=$2 where id=$3", string(data), timestamp, order.Order_id)
+		_, err = sdb.Query("update orders set orderjson=$1, pubdate=$2 where id=$3", string(data), timestamp, order.Order_id)
 		if err != nil {
+			timestamp = 1
 			return
 		}
 	}
