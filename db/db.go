@@ -50,7 +50,6 @@ func New(data []byte, timestamp int64) {
 	if err != nil {
 		_, err = sdb.Query("update orders set orderjson=$1, pubdate=$2 where id=$3", string(data), timestamp, order.Order_id)
 		if err != nil {
-			timestamp = 1
 			return
 		}
 	}
