@@ -1,6 +1,8 @@
 # subscriber
 
 database contains next fields:
+
+
         users=# \d orders
                             Table "public.orders"
         Column   |       Type        | Collation | Nullable | Default 
