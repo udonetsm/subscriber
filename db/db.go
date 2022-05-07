@@ -3,13 +3,12 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
-	"log"
+	"strings"
 
 	"github.com/udonetsm/help/helper"
 	"github.com/udonetsm/help/models"
 	mod "github.com/udonetsm/publisher/models"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	_ "gorm.io/driver/postgres"
 )
 
 func connStr(path string) string {
@@ -32,33 +31,52 @@ func sqlDb() *sql.DB {
 	return sdb
 }
 
-func gormDb() *gorm.DB {
-	sdb := sqlDb()
-	defer helper.PanicCapture("gormDb")
-	gdb, err := gorm.Open(postgres.New(postgres.Config{Conn: sdb}), &gorm.Config{})
-	helper.Errors(err, "gormOpen")
-	return gdb
+//Deletes all target_simbols from target_string
+func Replace(target_string string, target_simbols ...interface{}) string {
+	for _, target_simbol := range target_simbols {
+		target_string = strings.Replace(target_string, target_simbol.(string), "", -1)
+	}
+	return target_string
 }
 
-func New(data []byte, timestamp int64) {
+func New(data []byte, timestamp int64) string {
+	d := string(data)
+	d = Replace(d, "\n", "\n ", " \n ")
+	data = []byte(d)
 	sdb := sqlDb()
 	order := mod.Order{}
 	if err := json.Unmarshal(data, &order); err != nil {
-		return
+		return ""
 	}
-	_, err := sdb.Query("insert into orders(id, orderjson, pubdate) values($1, $2, $3)", order.Order_id, string(data), timestamp)
+	_, err := sdb.Query("insert into orders(id, orderjson, pubdate) values($1, $2, $3)", order.Order_id, data, timestamp)
 	if err != nil {
-		_, err = sdb.Query("update orders set orderjson=$1, pubdate=$2 where id=$3", string(data), timestamp, order.Order_id)
+		_, err = sdb.Query("update orders set orderjson=$1, pubdate=$2 where id=$3", data, timestamp, order.Order_id)
 		if err != nil {
-			return
+			return ""
 		}
 	}
+	return order.Order_id
 }
 
 func GetMaxValue() (maxpubdate int64) {
 	sdb := sqlDb()
 	err := sdb.QueryRow("select max(pubdate) from orders").Scan(&maxpubdate)
-	log.Println(err)
-	helper.Errors(err, "GetMax")
+	if err != nil {
+		return 1
+	}
 	return
+}
+
+func GetAll() ([]string, []string) {
+	var key_list, value_list []string
+	var key, value string
+	sdb := sqlDb()
+	query, err := sdb.Query("select id, orderjson from orders")
+	helper.Errors(err, "query")
+	for query.Next() {
+		query.Scan(&key, &value)
+		key_list = append(key_list, key)
+		value_list = append(value_list, value)
+	}
+	return key_list, value_list
 }
