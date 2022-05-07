@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"nats/db"
+	"subscriber/db"
 	"time"
 
 	"github.com/nats-io/stan.go"
@@ -28,7 +28,7 @@ func ConnectAndSubscribe(clientid, clusterid, url, sub string) {
 }
 
 func Subscribe(sub string, sc stan.Conn) {
-	lastTimeWrittenData := db.GetMax()
+	lastTimeWrittenData := db.GetMaxValue()
 	delta := time.Now().UnixNano() - lastTimeWrittenData
 	_, err := sc.QueueSubscribe(sub, "que", func(msg *stan.Msg) {
 		db.New(msg.Data, msg.Timestamp)

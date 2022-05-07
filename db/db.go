@@ -44,18 +44,19 @@ func New(data []byte, timestamp int64) {
 	sdb := sqlDb()
 	order := mod.Order{}
 	log.Println(json.Unmarshal(data, &order))
-	_, err := sdb.Query("insert into messages(id, orderjson, pubdate) values($1, $2, $3)", order.Order_id, string(data), timestamp)
+	_, err := sdb.Query("insert into orders(id, orderjson, pubdate) values($1, $2, $3)", order.Order_id, string(data), timestamp)
 	if err != nil {
-		_, err = sdb.Query("update messages set orderjson=$1 and pubdate=$2 where id=$3", string(data), timestamp, order.Order_id)
+		_, err = sdb.Query("update orders set orderjson=$1 and pubdate=$2 where id=$3", string(data), timestamp, order.Order_id)
 		if err != nil {
 			return
 		}
 	}
 }
 
-func GetMax() (maxpubdate int64) {
+func GetMaxValue() (maxpubdate int64) {
 	sdb := sqlDb()
-	err := sdb.QueryRow("select max(pubdate) from messages").Scan(&maxpubdate)
+	err := sdb.QueryRow("select max(pubdate) from orders").Scan(&maxpubdate)
+	log.Println(err)
 	helper.Errors(err, "GetMax")
 	return
 }
