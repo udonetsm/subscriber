@@ -3,7 +3,9 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"strings"
+	"time"
 
 	"github.com/udonetsm/help/helper"
 	"github.com/udonetsm/help/models"
@@ -39,31 +41,38 @@ func Replace(target_string string, target_simbols ...interface{}) string {
 	return target_string
 }
 
-func New(data []byte, timestamp int64) string {
+func Set(data []byte, timestamp int64) (string, error) {
 	d := string(data)
-	d = Replace(d, "\n", "\n ", " \n ")
+	d = Replace(d, "\n")
 	data = []byte(d)
 	sdb := sqlDb()
+	defer sdb.Close()
 	order := mod.Order{}
 	if err := json.Unmarshal(data, &order); err != nil {
-		return ""
+		//if incoming data not order json
+		return "", errors.New("data_not_valid")
 	}
 	_, err := sdb.Query("insert into orders(id, orderjson, pubdate) values($1, $2, $3)", order.Order_id, data, timestamp)
 	if err != nil {
+		//probably incoming message with last order but with new data. Trying to update order in db
 		_, err = sdb.Query("update orders set orderjson=$1, pubdate=$2 where id=$3", data, timestamp, order.Order_id)
 		if err != nil {
-			return ""
+			return "", sql.ErrNoRows
 		}
 	}
-	return order.Order_id
+	//if data valid and no other errors, data must be writtn in cache
+	return order.Order_id, nil
 }
 
-func GetMaxValue() (maxpubdate int64) {
+// this func gets maxvalue of pubdate and generate delta between lats written date and now
+func GetDelta() (delta int64) {
 	sdb := sqlDb()
-	err := sdb.QueryRow("select max(pubdate) from orders").Scan(&maxpubdate)
+	err := sdb.QueryRow("select max(pubdate) from orders").Scan(&delta)
 	if err != nil {
+		// if database contians nothing
 		return 1
 	}
+	delta = time.Now().UnixNano() - delta
 	return
 }
 
