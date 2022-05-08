@@ -17,16 +17,16 @@ type Delivery struct {
 }
 
 type Payment struct {
-	Tarnsaction   string `json:"tranaction,omitempty"`
-	Request_Id    string `json:"request_id,omitempty"`
-	Currency      string `json:"currency,omitempty"`
-	Provider      string `json:"provider,omitempty"`
-	Amount        int    `json:"amount,omitempty"`
-	Payment_Dt    int64  `json:"payment_dt,omitempty"`
-	Bank          string `json:"bank,omitempty"`
-	Delivery_cost int    `json:"delivery_cost,omitempty"`
-	Goods_total   int    `json:"goods_total,omitempty"`
-	Custom_fee    int    `json:"custom_fee,omitempty"`
+	Tarnsaction   string  `json:"tranaction,omitempty"`
+	Request_Id    string  `json:"request_id,omitempty"`
+	Currency      string  `json:"currency,omitempty"`
+	Provider      string  `json:"provider,omitempty"`
+	Amount        int     `json:"amount,omitempty"`
+	Payment_Dt    int64   `json:"payment_dt,omitempty"`
+	Bank          string  `json:"bank,omitempty"`
+	Delivery_cost float64 `json:"delivery_cost,omitempty"`
+	Goods_total   float64 `json:"goods_total,omitempty"`
+	Custom_fee    int     `json:"custom_fee,omitempty"`
 }
 
 type Items struct {
@@ -60,14 +60,17 @@ type Order struct {
 	Oof_shard          string    `json:"oof_shard,omitempty"`
 }
 
+// Interface
 type Render interface {
 	ShowJSON(w http.ResponseWriter, r *http.Request)
 }
 
+// Object realize method
 func (order *Order) ShowJSON(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&order)
 }
 
+// func which use interface
 func Show(object Render, w http.ResponseWriter, r *http.Request) {
 	object.ShowJSON(w, r)
 }

@@ -32,10 +32,7 @@ func main() {
 func ConnectAndSubscribe(clientid, clusterid, url, sub string) {
 	fmt.Print("Connecting to nats streaming server --> ")
 	time.Sleep(2 * time.Second) //quasi DDoS protecting :-D
-	sc, err := stan.Connect(clusterid, clientid, stan.NatsURL(url),
-		stan.SetConnectionLostHandler(func(c stan.Conn, err error) {
-			log.Println("Disconnected")
-		}))
+	sc, err := stan.Connect(clusterid, clientid, stan.NatsURL(url))
 	if err != nil {
 		log.Println(err)
 		return
