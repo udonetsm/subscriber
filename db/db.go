@@ -7,9 +7,10 @@ import (
 	"strings"
 	"time"
 
+	mod "subscriber/models"
+
 	"github.com/udonetsm/help/helper"
 	"github.com/udonetsm/help/models"
-	mod "github.com/udonetsm/publisher/models"
 	_ "gorm.io/driver/postgres"
 )
 
@@ -76,6 +77,7 @@ func GetDelta() (delta int64) {
 	return
 }
 
+// This func fill cache
 func GetAll() ([]string, []string) {
 	var key_list, value_list []string
 	var key, value string
