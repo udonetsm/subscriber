@@ -6,15 +6,11 @@ import (
 
 type Cache struct {
 	sync.RWMutex
-	data map[string]Item
-}
-
-type Item struct {
-	Val string
+	data map[string]string
 }
 
 func New() *Cache {
-	items := make(map[string]Item)
+	items := make(map[string]string)
 	return &Cache{
 		data: items,
 	}
@@ -23,9 +19,7 @@ func New() *Cache {
 func (c *Cache) Set(key, value string) {
 	c.Lock()
 	defer c.Unlock()
-	c.data[key] = Item{
-		Val: value,
-	}
+	c.data[key] = value
 }
 
 func (c *Cache) Get(key string) (string, bool) {
@@ -35,5 +29,11 @@ func (c *Cache) Get(key string) (string, bool) {
 	if !ok {
 		return "", false
 	}
-	return item.Val, true
+	return item, true
+}
+
+func (c *Cache) Remove(key string) {
+	c.RLock()
+	defer c.Unlock()
+	c.data[key] = ""
 }
