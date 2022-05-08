@@ -31,3 +31,9 @@ func (c *Cache) Get(key string) (string, bool) {
 	}
 	return item, true
 }
+
+func (c *Cache) Remove(key string) {
+	c.RLock()
+	defer c.RUnlock()
+	c.data[key] = ""
+}
