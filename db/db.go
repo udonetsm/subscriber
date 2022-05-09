@@ -43,16 +43,17 @@ func Replace(target_string string, target_simbols ...interface{}) string {
 }
 
 func Set(data []byte, timestamp int64) (string, error) {
-	d := string(data)
-	d = Replace(d, "\n")
-	data = []byte(d)
-	sdb := sqlDb()
-	defer sdb.Close()
 	order := mod.Order{}
 	if err := json.Unmarshal(data, &order); err != nil {
 		//if incoming data not order json
 		return "", errors.New("data_not_valid")
 	}
+	d := string(data)
+	// drop
+	d = Replace(d, "\n")
+	data = []byte(d)
+	sdb := sqlDb()
+	defer sdb.Close()
 	_, err := sdb.Query("insert into orders(id, orderjson, pubdate) values($1, $2, $3)", order.Order_id, data, timestamp)
 	if err != nil {
 		//probably incoming message with last order but with new data. Trying to update order in db
@@ -68,6 +69,7 @@ func Set(data []byte, timestamp int64) (string, error) {
 // this func gets maxvalue of pubdate and generate delta between lats written date and now
 func GetDelta() (delta int64) {
 	sdb := sqlDb()
+	defer sdb.Close()
 	err := sdb.QueryRow("select max(pubdate) from orders").Scan(&delta)
 	if err != nil {
 		// if database contians nothing
