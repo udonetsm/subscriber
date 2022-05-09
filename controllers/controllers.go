@@ -60,6 +60,7 @@ func HTTPServing() {
 
 func GetById(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
+	log.Println(id)
 	cashed_order, ok := service_cache.Get(id)
 	order := models.Order{}
 	if ok {

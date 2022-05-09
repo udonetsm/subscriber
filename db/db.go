@@ -49,7 +49,6 @@ func Set(data []byte, timestamp int64) (string, error) {
 		return "", errors.New("data_not_valid")
 	}
 	d := string(data)
-	// drop
 	d = Replace(d, "\n")
 	data = []byte(d)
 	sdb := sqlDb()
