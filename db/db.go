@@ -55,7 +55,7 @@ func Set(data []byte, timestamp int64) (string, error) {
 	defer sdb.Close()
 	_, err := sdb.Query("insert into orders(id, orderjson, pubdate) values($1, $2, $3)", order.Order_id, data, timestamp)
 	if err != nil {
-		//probably incoming message with last order but with new data. Trying to update order in db
+		//probably incoming message with same orderid but with new data. Trying to update order in db
 		_, err = sdb.Query("update orders set orderjson=$1, pubdate=$2 where id=$3", data, timestamp, order.Order_id)
 		if err != nil {
 			return "", sql.ErrNoRows
